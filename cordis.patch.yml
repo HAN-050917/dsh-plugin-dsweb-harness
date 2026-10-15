@@ -1,0 +1,8 @@
+# 把「DeepSeek 网页版聊天」插件插入 profile。
+# This patch inserts the single plugin row that mounts BOTH halves:
+# the host side (chat.deepseek.com proxy routes, token vault, PoW solver)
+# and the browser side (the 聊天 panel + 工作/聊天 switch), served from
+# this package's lib/client.js.
+- insert:
+    - id: deepseek-web-chat
+      name: 'dsh-deepseek-web-chat'

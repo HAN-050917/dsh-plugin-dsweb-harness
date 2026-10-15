@@ -1,0 +1,881 @@
+event: ready
+data: {"request_message_id":1,"response_message_id":2,"model_type":"default"}
+
+event: update_session
+data: {"updated_at":1791984067.635824}
+
+data: {"v":{"response":{"message_id":2,"parent_id":1,"model":"","role":"ASSISTANT","thinking_enabled":false,"ban_edit":false,"ban_regenerate":false,"status":"WIP","incomplete_message":null,"accumulated_token_usage":0,"feedback":null,"inserted_at":1791984067.6232789,"search_enabled":true,"fragments":[{"id":2,"type":"SEARCH","status":"WIP","content":null,"queries":[{"query":"2026年10月14日 广州 新闻"},{"query":"2026年10月14日 国内新闻"}],"results":[]}],"conversation_mode":"DEFAULT","has_pending_fragment":false,"auto_continue":false,"search_triggered":true,"extra_search_providers":[]}}}
+
+data: {"p":"response/fragments/-1/results","v":[{"url":"https://tv.cctv.com/2026/10/14/VIDEBvJrpn4430p6YBXTDNkN261014.shtml","title":"[视频]李强出席第140届中国进出口商品交易会开幕式并发表主旨演讲","snippet":"[视频]李强出席第140届中国进出口商品交易会开幕式并发表主旨演讲 ... 国务院总理李强14日在广州出席第140届中国进出口商品交易会开幕式并发表主旨演讲。 李强表示，今年是广交会创办70周年。","cite_index":1,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.com","site_name":"CCTV节目官网","query_indexes":[0],"provider":null},{"url":"https://tv.cctv.cn/2026/10/14/VIDELt351JSMRY7uEJqvyXg1261014.shtml","title":"[视频]国内联播快讯","snippet":"中央依法治国办启动领导干部依法办事情况法治督察 ... 2026年“社保服务进万家”活动今天启动 ... 我国将加强农村助老员队伍建设 ... 9月电商物流指数环比回升 供需协同向好","cite_index":2,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.cn","site_name":"cctv.cn","query_indexes":[1],"provider":null},{"url":"https://www.fmprc.gov.cn/web/zyxw/202610/t20261014_12040263.shtml","title":"李强出席第140届中国进出口商品交易会开幕式并发表主旨演讲","snippet":"2026年10月14日下午，国务院总理李强在广州出席第140届中国进出口商品交易会（广交会）开幕式并发表主旨演讲。","cite_index":3,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/fmprc.gov.cn","site_name":"中华人民共和国外交部","query_indexes":[0],"provider":null},{"url":"https://news.cctv.com/2026/10/14/ARTIGJ3H1mcIZJEh25jvZvzZ261014.shtml","title":"【8点见】患者送1.9元汽水后举报医院工作人员收礼，官方回应","snippet":"【8点见】患者送1.9元汽水后举报医院工作人员收礼 ... 央视网 | 2026年10月14日 08:01:36 ... ·患者送1.9元汽水后举报医院药房工作人员违规收礼，佛山市卫生健康局 ... ·四川宜宾一炸串女摊主被差评后跳河轻生...","cite_index":4,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.com","site_name":"央视网","query_indexes":[1],"provider":null},{"url":"https://tv.cctv.cn/2026/10/14/VIDEEQCJJkfShTNYf1Zl2Zgj261014.shtml","title":"[天下财经]第140届广交会开幕在即 广州口岸迎来广交会客货入境高峰","snippet":"[天下财经]第140届广交会开幕在即 广州口岸迎来广交会客货入境高峰 来源 : 央视网 2026-10-14 12:33 内容简介 21+1 关注 ... 第140届广交会开幕在即：广州口岸迎来广交会客货入境高峰。","cite_index":5,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.cn","site_name":"cctv.cn","query_indexes":[0],"provider":null},{"url":"http://big5.cctv.com/gate/big5/news.cctv.cn/2026/10/14/ARTIGJ3H1mcIZJEh25jvZvzZ261014.shtml","title":"【8點見】患者送1.9元汽水後舉報醫院工作人員收禮，官方回應","snippet":"【8點見】患者送1.9元汽水後舉報醫院工作人員收禮，官方回應 來源：央視網 | 2026年10月14日 08:01:36 ... ·患者送1.9元汽水後舉報醫院藥房工作人員違規收禮，佛山市衞生健康局...","cite_index":6,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.com","site_name":"央视网","query_indexes":[1],"provider":null},{"url":"https://tv.cctv.com/2026/10/14/VIDEOJsqYdUSC2c5SzlX8FlD261014.shtml","title":"《第一时间》 20261014 2/2","snippet":"第140届广交会开幕在即：广州口岸迎来广交会客货入境高峰；2026年前八月我国服务贸易出口同比增14.8%；江苏 ... 2026年10月14日 09 ... - 视频简介 本期节目主要内容...","cite_index":7,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.com","site_name":"CCTV节目官网","query_indexes":[0],"provider":null},{"url":"https://tv.cctv.cn/2026/10/14/VIDEnQPRqQwcOFHIj9y4Ydny261014.shtml","title":"《新闻直播间》 20261014 17:00","snippet":"国家统计局：前三季度居民消费价格指数同比涨0.9%；中方近期举办一系列展会·外交部：连接全球，赋能发展的重要窗口；国务院台办：充分肯定台湾艺人国庆之际为祖国献祝福。 （《新闻直播间》 20261014 17...","cite_index":8,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/cctv.cn","site_name":"cctv.cn","query_indexes":[1],"provider":null},{"url":"https://am.china-embassy.gov.cn/chn/zgxw/202610/t20261014_12040173.htm","title":"习近平向第140届中国进出口商品交易会致贺信_中华人民共和国驻亚美尼亚共和国大使馆","snippet":"2026年10月14日，国家主席习近平向第140届中国进出口商品交易会（广交会）致贺信 ... 第140届广交会当日在广东省广州市开幕，由商务部和广东省人民政府共同主办。","cite_index":9,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/china-embassy.gov.cn","site_name":"驻亚美尼亚大使馆","query_indexes":[0],"provider":null},{"url":"https://www.163.com/dy/article/L978PVNN05346RC6.html","title":"新华社快讯：习近平向第140届中国进出口商品交易会致贺信","snippet":"习近平向第140届中国进出口商品交易会致贺信 2026-10-14 15:18:23 来源 ... 10月14日，国家主席习近平向第140届中国进出口商品交易会（广交会）致贺信。","cite_index":10,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/163.com","site_name":"网易","query_indexes":[1],"provider":null},{"url":"https://www.toutiao.com/article/7696499784085013026/?wid=1791981698938","title":"10月14日新闻夜览","snippet":"2026年10月14日，“羲和号”升空5年后，南京大学、中国航天科技集团上海航天技术研究院、中国科学院长春光机所等三家研制单位向记者介绍了我国太阳探测的进展成果与后续规划。","cite_index":11,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/toutiao.com","site_name":"今日头条","query_indexes":[1],"provider":null},{"url":"https://jp.news.cn/20261014/7822bff7f151450992a827f796c5a8f7/c.html","title":"李強総理、「広交世界７０周年」座談会に出席","snippet":"【新華社広州１０月１４日】中国の李強（り・きょう）国務院総理は１４日、広東省広州市で開かれた中国輸出入商品交易会（広州交易会）７０周年を記念する「広交世界７０周年」座談会に出席した。","cite_index":12,"published_at":1791907200.0,"site_icon":"https://cdn.deepseek.com/site-icons/news.cn","site_name":"新華網日本語","query_indexes":[0],"provider":null}]}
+
+data: {"p":"response/fragments/-1","o":"BATCH","v":[{"p":"status","v":"FINISHED"},{"p":"content","v":"搜索到 12 个网页"}]}
+
+data: {"p":"response/conversation_mode","o":"SET","v":"SEARCH"}
+
+data: {"p":"response/has_pending_fragment","v":true}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"fragments","o":"APPEND","v":[{"id":3,"type":"RESPONSE","content":"今天的","references":[],"stage_id":2}]},{"p":"has_pending_fragment","o":"SET","v":false}]}
+
+data: {"p":"response/fragments/-1/content","o":"APPEND","v":"新闻"}
+
+data: {"v":"主要集中在"}
+
+data: {"v":"**"}
+
+data: {"v":"第"}
+
+data: {"v":"140"}
+
+data: {"v":"届"}
+
+data: {"v":"广"}
+
+data: {"v":"交"}
+
+data: {"v":"会"}
+
+data: {"v":"开幕"}
+
+data: {"v":"**"}
+
+data: {"v":"，"}
+
+data: {"v":"此外"}
+
+data: {"v":"还有"}
+
+data: {"v":"多项"}
+
+data: {"v":"国内"}
+
+data: {"v":"经济"}
+
+data: {"v":"数据"}
+
+data: {"v":"发布"}
+
+data: {"v":"和"}
+
+data: {"v":"民生"}
+
+data: {"v":"政策"}
+
+data: {"v":"动态"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"今日"}
+
+data: {"v":"要"}
+
+data: {"v":"闻"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"第"}
+
+data: {"v":"140"}
+
+data: {"v":"届"}
+
+data: {"v":"广"}
+
+data: {"v":"交"}
+
+data: {"v":"会"}
+
+data: {"v":"开幕"}
+
+data: {"v":"**\n"}
+
+data: {"v":"国家"}
+
+data: {"v":"主席"}
+
+data: {"v":"习近平"}
+
+data: {"v":"致"}
+
+data: {"v":"贺"}
+
+data: {"v":"信"}
+
+data: {"v":"，"}
+
+data: {"v":"国务院"}
+
+data: {"v":"总理"}
+
+data: {"v":"李"}
+
+data: {"v":"强"}
+
+data: {"v":"出席"}
+
+data: {"v":"开幕式"}
+
+data: {"v":"并"}
+
+data: {"v":"发表"}
+
+data: {"v":"主旨"}
+
+data: {"v":"演讲"}
+
+data: {"v":"。"}
+
+data: {"v":"本届"}
+
+data: {"v":"广"}
+
+data: {"v":"交"}
+
+data: {"v":"会"}
+
+data: {"v":"共有"}
+
+data: {"v":"3"}
+
+data: {"v":"万"}
+
+data: {"v":"多家"}
+
+data: {"v":"企业"}
+
+data: {"v":"参展"}
+
+data: {"v":"，"}
+
+data: {"v":"约"}
+
+data: {"v":"34"}
+
+data: {"v":"万名"}
+
+data: {"v":"境外"}
+
+data: {"v":"采购"}
+
+data: {"v":"商"}
+
+data: {"v":"到"}
+
+data: {"v":"会"}
+
+data: {"v":"采购"}
+
+data: {"v":"[citation:1]"}
+
+data: {"v":"[citation:3]"}
+
+data: {"v":"[citation:9]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"前三"}
+
+data: {"v":"季度"}
+
+data: {"v":"外贸"}
+
+data: {"v":"数据"}
+
+data: {"v":"出炉"}
+
+data: {"v":"**\n"}
+
+data: {"v":"海关"}
+
+data: {"v":"总"}
+
+data: {"v":"署"}
+
+data: {"v":"数据显示"}
+
+data: {"v":"，"}
+
+data: {"v":"前三"}
+
+data: {"v":"季度"}
+
+data: {"v":"我国"}
+
+data: {"v":"货物"}
+
+data: {"v":"贸易"}
+
+data: {"v":"进出口"}
+
+data: {"v":"39"}
+
+data: {"v":"."}
+
+data: {"v":"94"}
+
+data: {"v":"万亿元"}
+
+data: {"v":"，"}
+
+data: {"v":"同比增长"}
+
+data: {"v":"18"}
+
+data: {"v":"."}
+
+data: {"v":"8"}
+
+data: {"v":"%，"}
+
+data: {"v":"其中"}
+
+data: {"v":"出口"}
+
+data: {"v":"增长"}
+
+data: {"v":"16"}
+
+data: {"v":"."}
+
+data: {"v":"4"}
+
+data: {"v":"%，"}
+
+data: {"v":"进口"}
+
+data: {"v":"增长"}
+
+data: {"v":"22"}
+
+data: {"v":"."}
+
+data: {"v":"3"}
+
+data: {"v":"%"}
+
+data: {"v":"[citation:11]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"9"}
+
+data: {"v":"月"}
+
+data: {"v":"CPI"}
+
+data: {"v":"温和"}
+
+data: {"v":"回升"}
+
+data: {"v":"**\n"}
+
+data: {"v":"国家"}
+
+data: {"v":"统计局"}
+
+data: {"v":"发布"}
+
+data: {"v":"数据"}
+
+data: {"v":"，"}
+
+data: {"v":"9"}
+
+data: {"v":"月份"}
+
+data: {"v":"全国"}
+
+data: {"v":"居民"}
+
+data: {"v":"消费"}
+
+data: {"v":"价格"}
+
+data: {"v":"指数"}
+
+data: {"v":"（"}
+
+data: {"v":"CPI"}
+
+data: {"v":"）"}
+
+data: {"v":"同比"}
+
+data: {"v":"上涨"}
+
+data: {"v":"0"}
+
+data: {"v":"."}
+
+data: {"v":"9"}
+
+data: {"v":"%，"}
+
+data: {"v":"涨幅"}
+
+data: {"v":"比"}
+
+data: {"v":"上月"}
+
+data: {"v":"扩大"}
+
+data: {"v":"0"}
+
+data: {"v":"."}
+
+data: {"v":"1"}
+
+data: {"v":"个百分点"}
+
+data: {"v":"[citation:8]"}
+
+data: {"v":"[citation:11]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"政策"}
+
+data: {"v":"与"}
+
+data: {"v":"民生"}
+
+data: {"v":"动态"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"社保"}
+
+data: {"v":"服务"}
+
+data: {"v":"进"}
+
+data: {"v":"万家"}
+
+data: {"v":"活动"}
+
+data: {"v":"启动"}
+
+data: {"v":"**\n"}
+
+data: {"v":"人社"}
+
+data: {"v":"部"}
+
+data: {"v":"今天"}
+
+data: {"v":"启动"}
+
+data: {"v":"202"}
+
+data: {"v":"6"}
+
+data: {"v":"年"}
+
+data: {"v":"“"}
+
+data: {"v":"社保"}
+
+data: {"v":"服务"}
+
+data: {"v":"进"}
+
+data: {"v":"万家"}
+
+data: {"v":"”"}
+
+data: {"v":"活动"}
+
+data: {"v":"，"}
+
+data: {"v":"依托"}
+
+data: {"v":"“"}
+
+data: {"v":"15"}
+
+data: {"v":"分钟"}
+
+data: {"v":"+"}
+
+data: {"v":"5"}
+
+data: {"v":"公里"}
+
+data: {"v":"”"}
+
+data: {"v":"服务"}
+
+data: {"v":"圈"}
+
+data: {"v":"，"}
+
+data: {"v":"推动"}
+
+data: {"v":"服务"}
+
+data: {"v":"窗口"}
+
+data: {"v":"前"}
+
+data: {"v":"移"}
+
+data: {"v":"[citation:2]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"加强"}
+
+data: {"v":"农村"}
+
+data: {"v":"助"}
+
+data: {"v":"老"}
+
+data: {"v":"员"}
+
+data: {"v":"队伍建设"}
+
+data: {"v":"**\n"}
+
+data: {"v":"民政"}
+
+data: {"v":"部"}
+
+data: {"v":"等"}
+
+data: {"v":"三"}
+
+data: {"v":"部门"}
+
+data: {"v":"印发"}
+
+data: {"v":"通知"}
+
+data: {"v":"，"}
+
+data: {"v":"明确"}
+
+data: {"v":"利用"}
+
+data: {"v":"志愿者"}
+
+data: {"v":"等"}
+
+data: {"v":"力量"}
+
+data: {"v":"充实"}
+
+data: {"v":"农村"}
+
+data: {"v":"助"}
+
+data: {"v":"老"}
+
+data: {"v":"员"}
+
+data: {"v":"队伍"}
+
+data: {"v":"，"}
+
+data: {"v":"为"}
+
+data: {"v":"农村"}
+
+data: {"v":"老年人"}
+
+data: {"v":"提供"}
+
+data: {"v":"探"}
+
+data: {"v":"访"}
+
+data: {"v":"关爱"}
+
+data: {"v":"等服务"}
+
+data: {"v":"[citation:2]"}
+
+data: {"v":"[citation:4]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"矿产资源"}
+
+data: {"v":"目录"}
+
+data: {"v":"发布"}
+
+data: {"v":"**\n"}
+
+data: {"v":"自然资源"}
+
+data: {"v":"部"}
+
+data: {"v":"会同"}
+
+data: {"v":"国家"}
+
+data: {"v":"发改委"}
+
+data: {"v":"发布"}
+
+data: {"v":"《"}
+
+data: {"v":"矿产资源"}
+
+data: {"v":"目录"}
+
+data: {"v":"》，"}
+
+data: {"v":"明确"}
+
+data: {"v":"我国"}
+
+data: {"v":"现存"}
+
+data: {"v":"174"}
+
+data: {"v":"个"}
+
+data: {"v":"矿"}
+
+data: {"v":"种"}
+
+data: {"v":"、"}
+
+data: {"v":"119"}
+
+data: {"v":"个"}
+
+data: {"v":"亚"}
+
+data: {"v":"矿"}
+
+data: {"v":"种"}
+
+data: {"v":"，"}
+
+data: {"v":"成为"}
+
+data: {"v":"矿产资源"}
+
+data: {"v":"规划"}
+
+data: {"v":"的基础"}
+
+data: {"v":"依据"}
+
+data: {"v":"[citation:2]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"其他"}
+
+data: {"v":"快"}
+
+data: {"v":"讯"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"法治"}
+
+data: {"v":"督察"}
+
+data: {"v":"启动"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"中央"}
+
+data: {"v":"依法"}
+
+data: {"v":"治国"}
+
+data: {"v":"办"}
+
+data: {"v":"启动"}
+
+data: {"v":"领导干部"}
+
+data: {"v":"依法"}
+
+data: {"v":"办事"}
+
+data: {"v":"情况"}
+
+data: {"v":"法治"}
+
+data: {"v":"督察"}
+
+data: {"v":"，"}
+
+data: {"v":"赴"}
+
+data: {"v":"河北"}
+
+data: {"v":"等"}
+
+data: {"v":"8"}
+
+data: {"v":"省"}
+
+data: {"v":"区"}
+
+data: {"v":"及"}
+
+data: {"v":"新疆"}
+
+data: {"v":"生产"}
+
+data: {"v":"建设"}
+
+data: {"v":"兵团"}
+
+data: {"v":"开展"}
+
+data: {"v":"实地"}
+
+data: {"v":"督察"}
+
+data: {"v":"[citation:2]"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"V"}
+
+data: {"v":"isa"}
+
+data: {"v":"获批"}
+
+data: {"v":"筹备"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"中国人民银行"}
+
+data: {"v":"批准"}
+
+data: {"v":"V"}
+
+data: {"v":"isa"}
+
+data: {"v":"在中国"}
+
+data: {"v":"境内"}
+
+data: {"v":"筹备"}
+
+data: {"v":"设立"}
+
+data: {"v":"银行卡"}
+
+data: {"v":"清算"}
+
+data: {"v":"机构"}
+
+data: {"v":"[citation:2]"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"重庆"}
+
+data: {"v":"原"}
+
+data: {"v":"市长"}
+
+data: {"v":"被"}
+
+data: {"v":"查"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"重庆"}
+
+data: {"v":"市委"}
+
+data: {"v":"原"}
+
+data: {"v":"副书记"}
+
+data: {"v":"、"}
+
+data: {"v":"市政府"}
+
+data: {"v":"原"}
+
+data: {"v":"市长"}
+
+data: {"v":"黄"}
+
+data: {"v":"奇"}
+
+data: {"v":"帆"}
+
+data: {"v":"被"}
+
+data: {"v":"查"}
+
+data: {"v":"[citation:4]"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"缅"}
+
+data: {"v":"北"}
+
+data: {"v":"犯罪"}
+
+data: {"v":"集团"}
+
+data: {"v":"宣"}
+
+data: {"v":"判"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"魏"}
+
+data: {"v":"怀"}
+
+data: {"v":"仁"}
+
+data: {"v":"、"}
+
+data: {"v":"陈"}
+
+data: {"v":"大卫"}
+
+data: {"v":"、"}
+
+data: {"v":"廖"}
+
+data: {"v":"景"}
+
+data: {"v":"芳"}
+
+data: {"v":"被判"}
+
+data: {"v":"死刑"}
+
+data: {"v":"，"}
+
+data: {"v":"缅"}
+
+data: {"v":"北魏"}
+
+data: {"v":"家"}
+
+data: {"v":"犯罪"}
+
+data: {"v":"集团"}
+
+data: {"v":"案"}
+
+data: {"v":"一审"}
+
+data: {"v":"宣"}
+
+data: {"v":"判"}
+
+data: {"v":"[citation:4]"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"以上"}
+
+data: {"v":"新闻"}
+
+data: {"v":"主要"}
+
+data: {"v":"来自"}
+
+data: {"v":"央视"}
+
+data: {"v":"新闻"}
+
+data: {"v":"联"}
+
+data: {"v":"播"}
+
+data: {"v":"、"}
+
+data: {"v":"外交部"}
+
+data: {"v":"官网"}
+
+data: {"v":"及"}
+
+data: {"v":"央视"}
+
+data: {"v":"网"}
+
+data: {"v":"等"}
+
+data: {"v":"权威"}
+
+data: {"v":"来源"}
+
+data: {"v":"。"}
+
+data: {"p":"response/fragments","v":[{"id":4,"type":"TIP","content":"本回答由 AI 生成，内容仅供参考，请仔细甄别","style":"WARNING","hide_on_wip":true}]}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"accumulated_token_usage","v":466},{"p":"quasi_status","v":"FINISHED"}]}
+
+data: {"p":"response/status","o":"SET","v":"FINISHED"}
+
+event: update_session
+data: {"updated_at":1791984070.799747}
+
+event: title
+data: {"content":"今日新闻汇总"}
+
+event: close
+data: {"click_behavior":"none","auto_resume":false}
+

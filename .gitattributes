@@ -1,0 +1,8 @@
+# Keep the working tree byte-identical across platforms: the client bundle is
+# served to browsers as-is and the tests compare source text.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary

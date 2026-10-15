@@ -1,0 +1,69 @@
+{
+  "name": "dsh-deepseek-web-chat",
+  "version": "0.1.0",
+  "description": "DeepSeek 网页版聊天 — 在 DSH 里同步并继续 chat.deepseek.com 的对话 · Sync and continue your DeepSeek web chats inside DSH",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "deepseek",
+    "dsh",
+    "dsh-plugin",
+    "chat",
+    "web-chat",
+    "conversation-sync"
+  ],
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "icon": "./icon.svg",
+  "files": [
+    "lib",
+    "locale",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat.git"
+  },
+  "homepage": "https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat#readme",
+  "bugs": {
+    "url": "https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.2 <0.3.0-0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.2.0-rc.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-locale": ">=0.2.0-rc.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.2.0-rc.2 <0.3.0-0"
+  },
+  "meta": {
+    "title": "DeepSeek 网页聊天",
+    "description": "把 chat.deepseek.com 的对话记录同步进 DSH，并在这里直接继续聊天"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  }
+}

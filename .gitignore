@@ -1,0 +1,16 @@
+# Not published, not needed at runtime: the plugin ships source only and DSH
+# serves lib/client.js as-is (no build step).
+node_modules/
+
+# Local scratch: previews, dumps and probes written by tools/.
+*.local.*
+preview/
+.asar/
+*.tmp
+
+# Logs and OS noise.
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
