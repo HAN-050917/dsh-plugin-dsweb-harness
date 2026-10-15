@@ -118,6 +118,8 @@ dsh-deepseek-web-chat/
 ├── cordis.patch.yml      # 往 profile 里 insert 一行：id deepseek-web-chat
 ├── icon.svg              # 插件列表与市场里的图标（package.json.icon）
 ├── LICENSE               # MIT
+├── PUBLISHING.md         # 推到 GitHub / 发 npm / 上架插件市场的步骤
+├── contrib/              # 给 awesome-dsh-plugin 清单用的 YAML 条目
 ├── lib/
 │   ├── index.js          # 【Host 半边】HTTP 路由 + SSE 转发 + 本地缓存
 │   ├── deepseek.js       # chat.deepseek.com 客户端（会话列表 / 历史 / 补全 / SSE 归约）
@@ -385,10 +387,10 @@ node test-citations.mjs  # 10 个用例 + 真实抓包正文 + 被拆开的标�
   里也从不会出现它——它是网页版正文自带的，剥掉只会更接近 Agent 模式。
 
 ```powershell
-node test-markdown.mjs   # 47 条断言：块级 / 行内 / 表格 / 任务列表 / 硬换行 / 代码卡
+node test-markdown.mjs   # 56 条断言：块级 / 行内 / 表格 / 任务列表 / 硬换行 / 代码卡与彩色分词
 node test-think.mjs      # 29 条断言：折叠摘要 / 展开 / 流式播报 / 24px 行高
-node test-style.mjs      # 53 个 token、91 个类：无越界 token、无裸色值、无死规则
-node test-i18n.mjs       # 71 个键：中英对齐、无死键、无硬编码文案
+node test-style.mjs      # 60 个 token、98 个类：无越界 token、无裸色值、无死规则
+node test-i18n.mjs       # 74 个键：中英对齐、无死键、无硬编码文案
 ```
 
 改样式时有个坑值得记一笔：`test-style.mjs` 判断「代码里用到的类都有定义」时，必须用
@@ -420,6 +422,45 @@ node test-i18n.mjs       # 71 个键：中英对齐、无死键、无硬编码�
 ```powershell
 node test-panel.mjs   # 整窗守卫：轨道上的拖放也被认领、非文件拖放不受影响、
                       # 文件夹被拒、四个监听器都能摘掉；另有「同一时刻只有一处画会话列表」
+```
+
+### 代码块：像 Agent 模式那样彩色，标题锁在卡片里
+
+网页版和 DSH 自己的 Agent 模式都给代码上色；这个插件以前是把源码原样塞进 `<pre>`，所以
+同样的回答在这里是黑白、在那边是彩色。现在 `renderCode()` 用一个**手写分词器**产出
+`dswc-tok-*` 片段（关键字 / 字符串 / 数字 / 注释 / 函数 / 参数 / 标点），颜色一律来自主题
+自己发布的 shiki 自定义属性（`--shiki-token-keyword` 等，与 DSH 的 CodeBlock 同一套），
+所以跟随亮/暗主题，也不需要引入 shiki（零依赖、无构建）。
+
+- 语言表覆盖 `js/ts/jsx/tsx/python/java/c/cpp/cs/go/rust/ruby/php/sql/shell/yaml/json/toml/
+  ini/css/scss/html/xml/markdown/matlab/r/…`，未收录的语言按通用规则上色，仍保证**逐字符原样**
+  （测试里对「每个字符都还在」有断言）；
+- 工具条现在是**三个** 24px 图标按钮：自动换行、复制、**下载**（`snippet.<ext>`，扩展名按语言给）；
+- 标题栏是 `position: sticky; top: 0`，但 `.dswc-codeblock` 加了 `overflow: hidden`：
+  DSH 自己的 `.block` 故意不裁剪（见 `CodeBlock.module.css` 的注释「overflow:hidden 会杀掉
+  sticky banner」），可它粘的是**面板滚动容器**，于是长代码往下滚时标题会浮出卡片、压到周围
+  UI 上——用户看到的就是「露出，不是严格置顶锁定」。这里改成裁剪：标题严格锁在卡片顶部圆角内，
+  代价是不再跟随视口。
+
+```powershell
+node test-markdown.mjs   # 分词的类别、逐字符保真、注释优先于运算符、未知语言原样
+```
+
+### 切换表面：以真实面板为准，而不是自己记的那份
+
+`surfaceStore` 以前只信自己记的 `current`。但中间那栏**不只**由这个开关控制：点插件自己的
+轨道图标、或外壳把面板交给别的视图，都会在 `select()` 之外把面板换掉。这时 `current` 已经过期，
+幂等守卫 `isSameSurface()` 会以为「已经在那儿了」，于是**切换被静默丢掉**——这正是「点历史对话、
+点顶部切换按钮有时候没反应」。
+
+现在 `select()` 先做一次 `syncSurface()`：读真实状态 `layout.panelInfo.activePanelId`
+（`null`/别的 id 就是工作态），用事实覆盖记忆，再走「幂等 → 导航 → 记录」。附带两点：
+
+- 导航**成功之后**才写记忆：`selectPanel` 在键还没注册时抛错，那次失败不再被记成「已在聊天」；
+- header 开关在 `activePanelId` 变化时同步一次记忆，所以外壳换的面板也会被记住，刷新后回到原处。
+
+```powershell
+node test-surface.mjs   # 49 条断言：含「面板被外壳拿走 → 记忆自动纠正 → 下一次切换不再被吞」
 ```
 
 ---
@@ -463,7 +504,7 @@ node test-panel.mjs   # 整窗守卫：轨道上的拖放也被认领、非文�
 | `test-history.mjs` | 历史记录只取 REQUEST/RESPONSE，簿记不进正文 |
 | `test-citations.mjs` | `stripCitations` 剥掉 `[reference:N]`（含跨 delta 的半个标记） |
 | `test-search.mjs` | 联网搜索的 TOOL_SEARCH/TIP 不进正文 |
-| `test-markdown.mjs` | markdown 渲染器 47 条断言（块级 / 行内 / 表格 / 任务列表 / 硬换行） |
+| `test-markdown.mjs` | markdown 渲染器 56 条断言（块级 / 行内 / 表格 / 任务列表 / 硬换行 / 代码卡的三个工具按钮与彩色分词：关键字、字符串、数字、注释、函数、参数，未知语言原样输出） |
 | `test-think.mjs` | 推理行 29 条断言（折叠摘要取「最后一个已完成段落」、展开渲染全链、24px 行高） |
 | `test-paging.mjs` | 会话列表翻页 15 条断言（走完全部历史、游标闭区间去重、`has_more` 撒谎也不会转圈） |
 | `test-i18n.mjs` | 中英字典（73 键）：无缺键/死键、两侧键集相同、没有绕过字典的硬编码文案 |
