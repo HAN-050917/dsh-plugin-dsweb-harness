@@ -10,7 +10,7 @@
 
 ```bash
 node --check lib/index.js && node --check lib/client.js   # 语法
-for f in test-*.mjs; do node "$f" || echo "FAIL $f"; done # 18 个套件必须全绿
+for f in test-*.mjs; do node "$f" || echo "FAIL $f"; done # 19 个套件必须全绿
 npm pack --dry-run                                         # 该发的文件：lib/ locale/ cordis.patch.yml icon.svg README LICENSE
 ```
 

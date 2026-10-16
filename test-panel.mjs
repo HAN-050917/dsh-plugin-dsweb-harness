@@ -114,12 +114,14 @@ assert.ok(
   'and falls back to the panel list when there is no row to click',
 );
 
-// The sidebar row has no API for selecting a tab, so the plugin clicks the rows
-// button; the helper must bail out (not throw) when that row is absent.
-const activateSidebarTab = new Function(
+// The sidebar row has no API for selecting a tab, so the plugin clicks the row's
+// button; the helpers must bail out (not throw) when that row is absent, and
+// must leave 频道 (or anything else a future row adds) strictly alone.
+const tabHelpers = new Function(
   'i18n',
-  `${lift('activateSidebarTab')}\nreturn activateSidebarTab;`,
+  `${lift('sidebarTabButtons')}\n${lift('sidebarTabButton')}\n${lift('activateSidebarTab')}\nreturn { sidebarTabButtons, sidebarTabButton, activateSidebarTab };`,
 )((key) => ({ 'tab.label': '聊天' })[key] || key);
+const { sidebarTabButton, activateSidebarTab } = tabHelpers;
 const savedDocument = globalThis.document;
 try {
   delete globalThis.document;
@@ -127,16 +129,26 @@ try {
   globalThis.document = { querySelector: () => null };
   assert.equal(activateSidebarTab('chat'), false, 'no row => a silent no-op');
   const clicks = [];
-  const row = {
-    querySelectorAll: () => [
-      { getAttribute: () => 'tab', textContent: '任务', click: () => clicks.push('tasks') },
-      { getAttribute: () => 'tab', textContent: '聊天', click: () => clicks.push('chat') },
-    ],
+  const mk = (text, selected) => {
+    const button = { getAttribute: (name) => (name === 'role' ? 'tab' : selected ? 'true' : null) };
+    button.textContent = text;
+    button.click = () => clicks.push(text);
+    return button;
   };
+  const tasks = mk('任务', false);
+  const chat = mk('聊天', false);
+  const channels = mk('频道', false);
+  const row = { querySelectorAll: () => [tasks, channels, chat] };
   globalThis.document = { querySelector: () => row };
   assert.equal(activateSidebarTab('chat'), true, 'chat mode clicks the 聊天 tab');
   assert.equal(activateSidebarTab('work'), true, 'work mode clicks the first (任务) tab');
-  assert.deepEqual(clicks, ['chat', 'tasks'], JSON.stringify(clicks));
+  assert.deepEqual(clicks, ['聊天', '任务'], JSON.stringify(clicks));
+  // Already selected: nothing to do, and nothing to click.
+  globalThis.document = { querySelector: () => ({ querySelectorAll: () => [mk('任务', true), mk('聊天', false)] }) };
+  assert.equal(activateSidebarTab('work'), false, 'a row already on 任务 is left alone');
+  // Row position alone never decides: 频道 is not ours to map to a surface.
+  assert.equal(sidebarTabButton([tasks, channels, chat], 'chat'), chat, '聊天 is found by its label, not its index');
+  assert.equal(sidebarTabButton([tasks, channels], 'chat'), null, 'no 聊天 button => no target');
 } finally {
   globalThis.document = savedDocument;
 }

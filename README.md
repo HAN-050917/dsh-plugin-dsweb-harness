@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![DSH](https://img.shields.io/badge/DSH-%3E%3D0.2.0--rc.2-4D6BFE)
-![tests](https://img.shields.io/badge/tests-18%20suites%20%C2%B7%200%20deps-brightgreen)
+![tests](https://img.shields.io/badge/tests-19%20suites%20%C2%B7%200%20deps-brightgreen)
 
 把 **chat.deepseek.com**（DeepSeek 网页版）的对话记录同步进 DSH 的 Web 界面，并在同一个窗口里
 直接继续聊天——不用再切到浏览器。左侧面板栏多出一个「聊天」图标，会话标题栏多出一个
@@ -62,7 +62,7 @@ dsh plugin --profile desktop add C:/Users/p/Documents/deepseek-harness/default-w
 `lib/deepseek.js`）必须重启 DSH。没有构建步骤，`lib/client.js` 是手写产物、由宿主直接发布。
 
 ```powershell
-# 跑测试（18 个套件，零依赖，用 DSH 自带 Node）
+# 跑测试（19 个套件，零依赖，用 DSH 自带 Node）
 node test-surface.mjs   # …test-*.mjs 都在包根目录
 ```
 
@@ -150,6 +150,7 @@ dsh-deepseek-web-chat/
 ├── test-i18n.mjs         # 中英字典完整性：无缺键、无死键、无绕过字典的硬编码文案
 ├── test-style.mjs        # 样式表只用真实主题 token，且类名都有定义
 ├── test-panel.mjs        # 「同一时刻只有一处画会话列表」的归属规则
+├── test-tab-sync.mjs     # 侧栏页签 ⇄ 聊天/工作表面永不漂移（43 条断言）
 ├── test-surface.mjs      # 聊天/工作表面：持久化、幂等、以真实面板为准的对齐、每面各自的位置记忆、表面切换同时带动侧栏页签（51 条断言）
 ├── test-load.mjs         # 整个客户端 bundle 完整装载一次 + 对最小 ctx 调 apply（12 条断言）
 ├── test-render.mjs       # 真组件真的画一遍：加载/就绪/附件 chip 各状态、列表归属（页签注册前后各画一次）+ 厂级作用域里误用 t() 的静态扫描
@@ -251,8 +252,18 @@ DSH 官方**没有**在这一行插页签的 slot，所以这里做的是**特�
 「任务」。im-connect 的注册表只有 `getTabs/insert/subscribe`，**没有** `activate()`；页签选择是
 它自己的 React state，初值来自 `localStorage['dsh-im-connect.sidebar-tab']`，只有它自己的
 `onClick` 会写，且没有 storage 监听 —— 所以从外面改那个键在刷新前毫无作用。插件因此直接
-`.click()` 那一行里对应按钮（就是不变量允许的那一种做法，等同于用户自己点），取不到行时安静
-地返回 false，绝不让切换抛出异常。
+`.click()` 那一行里对应按钮（等同于用户自己点），取不到行时安静地返回 false，绝不让切换抛异常。
+「聊天」是**按标签**找的（`i18n('tab.label')`），不按下标猜：「频道」在行里可能出现两次
+（对方注册的页签，或它的硬编码兜底按钮），下标法会被顶偏。
+
+但**只有这一半不够**：那一行的主人自己也在动它。它有一套跟随规则（会话一变就重算哪个页签属于
+当前会话，普通会话一律解析成「任务」），而单次 `.click()` 永远输给随后到达的 `setTab` ——
+这正是「从侧栏聊天页点历史会话，那一栏立马变回『任务』」。所以补齐另外两块：注册页签时声明
+`matchSession: () => desiredSurface() === 'chat'`，让它的规则认出本页；`reconcileSidebarTab()`
+则每 600ms 和对端事件后核对一次，只在两边不一致且属于「任务/聊天」这一对时补一次点击
+（停在「频道」时永不插手）；反向则只认 `event.isTrusted` 的真点击，走与顶部开关同一条
+`select()`——本插件自己的合成点击若被读回成用户意图，两个方向就会来回拉扯。详见下文
+「侧栏页签与表面互相认领」。
 
 脆弱点（写在这里以免以后当 bug 查）：注册表未公开、随 im-connect 版本可能变化；若
 im-connect 检测到 Codex UI 侧栏而自我解包，整个 任务/频道 行会消失，此时页签也一并消失，
@@ -484,6 +495,34 @@ node test-markdown.mjs   # 分词的类别、逐字符保真、注释优先于�
 node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆自动纠正 → 下一次切换不再被吞」
 ```
 
+### 侧栏页签与表面互相认领，而不是各走各的
+
+「聊天模式却停在任务栏、列表整块不见了」的根因在**对侧**：那一行不属于本插件，属于
+`@michengai/dsh-im-connect`，而它自己有一套跟随规则——会话一变就重算哪个页签属于当前会话
+（`followSidebarTab` → `sidebarTabForSession`），普通会话一律解析成「任务」。它的注册表只有
+`getTabs / insert / subscribe`，**没有** `activate()`；选中是它自己的 React state，从外面写
+`localStorage['dsh-im-connect.sidebar-tab']` 在刷新前毫无作用。所以有三件事：
+
+- **认领**：注册页签时带上 `matchSession: () => desiredSurface() === 'chat'`。这是它那套规则的
+  扩展点——处在聊天模式时本页认领当前会话，「任务」就不会赢；工作模式时什么都不认领，
+  「任务」照旧。若不声明，本插件在它眼里永远是普通任务会话，页面随时被换掉。
+- **纠偏**：`reconcileSidebarTab()` 每 600ms（`TAB_SYNC_MS`）和每次对端事件后核对一次，
+  只在「行选择 ≠ 真实面板」且两边属于「任务/聊天」这一对时补一次 `.click()`。
+  用轮询而不是 MutationObserver：流式回答每吐一个字都会改动子树，而一次选择器查询是免费的，
+  也不怕那一行被整个换掉。行停在「频道」时**永不插手**。
+- **双向**：用户在行上点「任务/聊天」＝想去那个面，走与顶部开关同一条 `select()`。只认
+  `event.isTrusted`——本插件自己发出的合成点击绝不能被读回成用户意图，否则两边会来回拉扯。
+  宿主的「新会话」同样意味着工作态，但**本插件自己的**「新对话 / New chat」先被排除：
+  英文界面的 `action.new` 正是 `New chat`，不排除的话宿主的正则会先把它读成「用户要新任务」。
+
+两个方向合起来才闭合：单次 `.click()` 永远输给随后到达的 `setTab`，所以需要纠偏；而纠偏若无
+「谁才是权威」的判据，就会变成两个插件互相拉扯——权威是**真实面板**
+（`layout.panelInfo.activePanelId`），页面只是跟着它走。
+
+```powershell
+node test-tab-sync.mjs   # 43 条断言：双向认领、频道不碰、合成点击不算意图、定时器可拆
+```
+
 ---
 
 ## 已知限制
@@ -513,7 +552,7 @@ node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆�
 
 ## 测试
 
-十八套件都在包目录里，用 DSH 自带的 Node 跑（`$DSH_HOME\dsh-runtimes\...\node.exe`），
+十九套件都在包目录里，用 DSH 自带的 Node 跑（`$DSH_HOME\dsh-runtimes\...\node.exe`），
 全部离线、不需要令牌：
 
 | 套件 | 钉住的行为 |
@@ -532,7 +571,8 @@ node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆�
 | `test-style.mjs` | 样式表只用真实主题 token、类名都有定义（60 个 token、100 个类） |
 | `test-api.mjs` | `api()` 保留查询串（丢掉就报「缺少 sessionId」） |
 | `test-chat-route.mjs` | 宿主路由 + 上传不被已读完的 request.signal 误取消 + 停止按钮中止上游 + 解析未完成 409 + 会话记住附件（追问仍带 ID、`detachFiles` 断得掉）+ 协议版本一致 |
-| `test-panel.mjs` | 列表归属（页签注册后中间不再有第二份列表、页面不在屏上时提示 + 一键切回）+ 整窗拖放守卫（轨道上的拖放也认领、非文件拖放不受影响、文件夹被拒、监听器可摘） |
+| `test-panel.mjs` | 列表归属（页签注册后中间不再有第二份列表、页面不在屏上时提示 + 一键切回）+ 整窗拖放守卫（轨道上的拖放也认领、非文件拖放不受影响、文件夹被拒、监听器可摘）+ 页签按钮解析（按标签找「聊天」而不是按下标猜、「频道」永不映射到任何表面、无行/无 `document` 安静返回 false） |
+| `test-tab-sync.mjs` | 侧栏页签与表面 43 条断言（两个方向都从真实 bundle 提升出来跑）：`reconcileSidebarTab()` 只修「任务/聊天」这一对、行已一致或停在「频道」时一次点击都不发；只有 `isTrusted` 的真点击会被读成用户意图，本插件自己的合成点击不会造成来回拉扯；宿主「新会话」进工作态，但我们自己的「新对话 / New chat」被排除在外（英文界面的 `New chat` 否则会被宿主正则吃掉）；轮询只有一个定时器且可完整拆除；`apply()` 必须先绑 store 再注册页签，否则 `matchSession` 会答错 |
 | `test-surface.mjs` | 聊天/工作表面 51 条断言（`surfaceStore` 从真实 bundle 里提升出来跑）：默认面、可选面导航后重载回到原面、幂等切换、未落地的切换不记入记忆、以真实面板 `panelInfo.activePanelId` 为准对齐（侧栏/外壳把面板拿走也不会让开关「没反应」）、每面各自的位置记忆、位置失效回退新对话、列表未同步时推迟判断 |
 | `test-load.mjs` | 3542 行客户端 bundle 用真实 `window.__ModuleLoader__.load` 握手完整求值一次，再对最小 `ctx` 调一次 `apply()`：`sidebar.panellist` / 键控 `main` / header 开关都注册到位，`shortcuts` 按需注入 |
 | `test-render.mjs` | 真组件真的画一遍 19 条断言（加载中 / 就绪 / 已解析附件 chip / 解析失败 chip / 带 markdown+思维链+引用的完整对话 / 令牌设置卡片 / 两个侧栏座位 / 侧栏页签注册前后的列表归属：一处画列、另一处只剩提示与一键切回），另加静态扫描：厂级作用域的辅助函数调用 `t()` 却没绑定它就必须失败。装载测试只证明文件能求值，画不出来照样是整块白面板 |
