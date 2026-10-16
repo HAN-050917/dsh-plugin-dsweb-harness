@@ -6,13 +6,15 @@
  * load-bearing in both directions: get it wrong and the same list is drawn
  * twice, or it disappears from the screen entirely.
  *
- * The rule is not "the page is registered" but "the page is mounted". The row
- * belongs to another plugin, and that plugin renders the OFFICIAL tree instead
- * of the tab row while the sidebar is collapsed to its 56px rail
+ * The rule is not "the page is registered" — that alone is not enough, because
+ * the row belongs to another plugin and that plugin renders the OFFICIAL tree
+ * instead of the tab row while the sidebar is collapsed to its 56px rail
  * (`@michengai/dsh-im-connect/lib/client.js:3546` — `if (props.wide === false)
  * return Official ? h(Official, officialProps) : null;`). Our page is unmounted
  * in that state, so a registration-time flag would hide the panel's column
- * while the sidebar showed nothing. `tabLive` tracks the mount.
+ * while the sidebar showed nothing. So: registered → the sidebar owns the list
+ * (in every tab state, which is what the user asked for); no page on screen and
+ * no row to click → the panel draws it again (`panelList`).
  *
  * The predicate is lifted OUT of the shipped bundle, so this fails if the
  * shipped code drifts from the rule asserted here.
@@ -63,6 +65,24 @@ assert.equal(
   false,
   'the list stays in the sidebar even while the row shows 任务',
 );
+assert.equal(
+  showSessionColumn({ tabInstalled: true, tabLive: true }),
+  false,
+  'the page being on screen is the strongest reason to hide the panel column',
+);
+// …unless there is no row to click at all (collapsed rail, owner gone). The
+// hint's button asks for the page, fails, and flips this flag so the panel
+// draws the list — the button must never be a dead end.
+assert.equal(
+  showSessionColumn({ tabInstalled: true, tabLive: false, panelList: true }),
+  true,
+  'an unreachable row falls back to the panel list',
+);
+assert.equal(
+  showSessionColumn({ tabInstalled: true, tabLive: true, panelList: true }),
+  false,
+  'and the fallback yields again the moment the page is really on screen',
+);
 // No host at all (no @michengai/dsh-im-connect, or its owner unwrapped): the
 // panel is the only place a list could live.
 assert.equal(showSessionColumn({ tabInstalled: false, tabLive: false }), true, 'no page => panel column shown');
@@ -71,8 +91,10 @@ assert.equal(showSessionColumn({ tabInstalled: false, tabLive: false }), true, '
 // leftmost column in every state, so "the row is on 任务 right now" must NOT
 // bring a second copy of the list back into the middle.
 assert.ok(
-  /function showSessionColumn\(state\)\s*\{\s*return !state\.tabInstalled;/.test(source),
-  'showSessionColumn must key off tabInstalled, not the live mount',
+  /function showSessionColumn\(state\)\s*\{[\s\S]{0,320}?state\.tabInstalled[\s\S]{0,320}?state\.tabLive[\s\S]{0,320}?state\.panelList/.test(
+    source,
+  ),
+  'showSessionColumn must weigh tabInstalled, the live mount and the fallback flag',
 );
 
 // The column must be routed through the predicate, not test a flag inline.
@@ -83,10 +105,14 @@ assert.ok(
 
 // …and when the list is NOT on screen the panel must say where it went, with
 // the one click that brings it back, instead of leaving the user without a list.
-const hint = source.match(/state\.tabInstalled && !state\.tabLive[\s\S]{0,600}/);
+const hint = source.match(/state\.tabInstalled && !state\.tabLive[\s\S]{0,900}/);
 assert.ok(hint, 'ChatPanel must point at the sidebar when its page is not on screen');
 assert.ok(/t\('side\.hint'\)/.test(hint[0]), 'the pointer names where the list lives');
 assert.ok(/activateSidebarTab\('chat'\)/.test(hint[0]), 'and offers to show it');
+assert.ok(
+  /store\.set\(\{ panelList: true \}\)/.test(hint[0]),
+  'and falls back to the panel list when there is no row to click',
+);
 
 // The sidebar row has no API for selecting a tab, so the plugin clicks the rows
 // button; the helper must bail out (not throw) when that row is absent.
