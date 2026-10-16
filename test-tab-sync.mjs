@@ -325,9 +325,14 @@ function build({ row = null, live = 'work', current = 'work' } = {}) {
   assert.ok(closeAt > insertAt, 'the tab registration literal is closed');
   const registration = source.slice(insertAt, closeAt);
   assert.ok(
-    /matchSession:\s*\(\)\s*=>\s*desiredSurface\(\)\s*===\s*'chat'/.test(registration),
+    /matchSession:\s*\(sessionId\)\s*=>\s*desiredSurface\(\)\s*===\s*'chat'/.test(registration),
     'the tab claims the host session exactly while this plugin is in 聊天, so the peer\'s own '
       + 'follow rule cannot walk the row back to 任务 underneath it',
+  );
+  assert.ok(
+    /!peerClaimsSession\(registry,\s*sessionId\)/.test(registration),
+    'and yields to any peer tab that claims the session first (频道 owns `im:` ones, and ours '
+      + 'is consulted at order 10, ahead of channels at 20)',
   );
 
   const sync = apply.match(/installSidebarTabSync/);
@@ -335,6 +340,87 @@ function build({ row = null, live = 'work', current = 'work' } = {}) {
   assert.ok(
     /ctx\.effect\(installSidebarTabSync/.test(apply),
     'and installs it through ctx.effect so a disable removes the listeners and the interval',
+  );
+}
+
+// ---- the claim never steals a session a peer tab owns -----------------------
+// `sidebarTabForSession` resolves the current session to the FIRST tab (by
+// order) whose matchSession agrees. Ours is order 10, 频道 is order 20, so
+// without an explicit yield a 频道 session would resolve to OUR page and the
+// user would be thrown off the channel they just clicked.
+{
+  const TAB_ID = 'deepseek-web-chat-tab';
+  // `peerClaimsSession` takes the registry itself, so the lifted body is bound
+  // to one here — the parameter names are injected, the rule is not copied.
+  const claim = (tabId, registry, surface) =>
+    new Function(
+      'TAB_ID',
+      'registry',
+      'desiredSurface',
+      `${lift('peerClaimsSession')}\nreturn (sessionId) => peerClaimsSession(registry, sessionId);`,
+    )(tabId, registry, surface);
+
+  const channels = {
+    id: 'channels',
+    order: 20,
+    matchSession: (id) => String(id).startsWith('im:'),
+  };
+  const chatTab = { id: TAB_ID, order: 10, matchSession: () => true };
+
+  const withChannels = (tabs) => ({ getTabs: () => tabs });
+
+  // A 频道 session belongs to 频道 even though our surface is 聊天.
+  const claimed = claim(TAB_ID, withChannels([chatTab, channels]), () => 'chat');
+  assert.equal(
+    claimed('im:room-42'),
+    true,
+    'a 频道 session is recognised as belonging to a peer tab',
+  );
+  assert.equal(
+    claimed('task-abc'),
+    false,
+    'an ordinary session belongs to nobody else, so our tab may claim it',
+  );
+
+  // Our own entry must not count as a peer claim, or the yield would veto us
+  // unconditionally and the original bug would return.
+  const onlyUs = {
+    getTabs: () => [{ id: TAB_ID, matchSession: () => true }],
+  };
+  assert.equal(
+    claim(TAB_ID, onlyUs, () => 'chat')('task-abc'),
+    false,
+    'this plugin\'s own tab is not a peer and must never veto the claim',
+  );
+
+  // A peer without an opinion does not claim anything.
+  assert.equal(
+    claim(TAB_ID, withChannels([{ id: 'schedule', order: 5 }]), () => 'chat')('task-abc'),
+    false,
+    'a tab with no matchSession claims nothing',
+  );
+
+  // Hostile / absent registries degrade to "no claim" rather than throwing
+  // while the row renders.
+  assert.equal(claim(TAB_ID, null, () => 'chat')('task-abc'), false, 'no registry => no peer claim');
+  assert.equal(claim(TAB_ID, {}, () => 'chat')('task-abc'), false, 'no getTabs => no peer claim');
+  assert.equal(
+    claim(TAB_ID, { getTabs: () => 'nope' }, () => 'chat')('task-abc'),
+    false,
+    'a non-array getTabs => no peer claim',
+  );
+  assert.equal(
+    claim(TAB_ID, { getTabs: () => { throw new Error('boom'); } }, () => 'chat')('task-abc'),
+    false,
+    'a throwing getTabs => no peer claim',
+  );
+  const throwsOnMatch = {
+    getTabs: () => [{ id: 'channels', matchSession: () => { throw new Error('boom'); } }],
+  };
+  assert.equal(
+    claim(TAB_ID, throwsOnMatch, () => 'chat')('im:x'),
+    false,
+    'a peer whose matchSession throws does not claim the session',
   );
 }
 

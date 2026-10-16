@@ -150,7 +150,7 @@ dsh-deepseek-web-chat/
 ├── test-i18n.mjs         # 中英字典完整性：无缺键、无死键、无绕过字典的硬编码文案
 ├── test-style.mjs        # 样式表只用真实主题 token，且类名都有定义
 ├── test-panel.mjs        # 「同一时刻只有一处画会话列表」的归属规则
-├── test-tab-sync.mjs     # 侧栏页签 ⇄ 聊天/工作表面永不漂移（43 条断言）
+├── test-tab-sync.mjs     # 侧栏页签 ⇄ 聊天/工作表面永不漂移（53 条断言）
 ├── test-surface.mjs      # 聊天/工作表面：持久化、幂等、以真实面板为准的对齐、每面各自的位置记忆、表面切换同时带动侧栏页签（51 条断言）
 ├── test-load.mjs         # 整个客户端 bundle 完整装载一次 + 对最小 ctx 调 apply（12 条断言）
 ├── test-render.mjs       # 真组件真的画一遍：加载/就绪/附件 chip 各状态、列表归属（页签注册前后各画一次）+ 厂级作用域里误用 t() 的静态扫描
@@ -259,7 +259,10 @@ DSH 官方**没有**在这一行插页签的 slot，所以这里做的是**特�
 但**只有这一半不够**：那一行的主人自己也在动它。它有一套跟随规则（会话一变就重算哪个页签属于
 当前会话，普通会话一律解析成「任务」），而单次 `.click()` 永远输给随后到达的 `setTab` ——
 这正是「从侧栏聊天页点历史会话，那一栏立马变回『任务』」。所以补齐另外两块：注册页签时声明
-`matchSession: () => desiredSurface() === 'chat'`，让它的规则认出本页；`reconcileSidebarTab()`
+`matchSession: (sessionId) => desiredSurface() === 'chat' && !peerClaimsSession(registry, sessionId)`，
+让它的规则认出本页，但**不抢别家页签的会话**（我们的 `order` 是 10，排在「频道」的 20 前面，
+所以一条平铺的「聊天模式什么都认领」会把用户刚点的频道会话认领过来、再把人弹回聊天页；
+`peerClaimsSession()` 先问一圈别的页签，谁认领就归谁）；`reconcileSidebarTab()`
 则每 600ms 和对端事件后核对一次，只在两边不一致且属于「任务/聊天」这一对时补一次点击
 （停在「频道」时永不插手）；反向则只认 `event.isTrusted` 的真点击，走与顶部开关同一条
 `select()`——本插件自己的合成点击若被读回成用户意图，两个方向就会来回拉扯。详见下文
@@ -503,9 +506,14 @@ node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆�
 `getTabs / insert / subscribe`，**没有** `activate()`；选中是它自己的 React state，从外面写
 `localStorage['dsh-im-connect.sidebar-tab']` 在刷新前毫无作用。所以有三件事：
 
-- **认领**：注册页签时带上 `matchSession: () => desiredSurface() === 'chat'`。这是它那套规则的
-  扩展点——处在聊天模式时本页认领当前会话，「任务」就不会赢；工作模式时什么都不认领，
-  「任务」照旧。若不声明，本插件在它眼里永远是普通任务会话，页面随时被换掉。
+- **认领**：注册页签时带上
+  `matchSession: (sessionId) => desiredSurface() === 'chat' && !peerClaimsSession(registry, sessionId)`。
+  这是它那套规则的扩展点——处在聊天模式时本页认领当前会话，「任务」就不会赢；工作模式时什么都
+  不认领，「任务」照旧。若不声明，本插件在它眼里永远是普通任务会话，页面随时被换掉。
+  **必须只认领自己的会话**：`sidebarTabForSession` 是**按 `order` 取第一个说「是」的页签**，
+  本插件 `order` 10 排在「频道」的 20 前面，一条平铺的「聊天模式全认领」会把用户刚点的频道会话
+  抢过来、再把人弹回聊天页。`peerClaimsSession()` 因此先问一圈别的页签（排除自己），谁认领就
+  让给谁；对端抛错、没 `matchSession`、注册表缺失都只算「不是声明」，绝不会因此让整行渲染失败。
 - **纠偏**：`reconcileSidebarTab()` 每 600ms（`TAB_SYNC_MS`）和每次对端事件后核对一次，
   只在「行选择 ≠ 真实面板」且两边属于「任务/聊天」这一对时补一次 `.click()`。
   用轮询而不是 MutationObserver：流式回答每吐一个字都会改动子树，而一次选择器查询是免费的，
@@ -520,7 +528,7 @@ node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆�
 （`layout.panelInfo.activePanelId`），页面只是跟着它走。
 
 ```powershell
-node test-tab-sync.mjs   # 43 条断言：双向认领、频道不碰、合成点击不算意图、定时器可拆
+node test-tab-sync.mjs   # 53 条断言：双向认领、不抢频道、合成点击不算意图、定时器可拆
 ```
 
 ---
@@ -572,7 +580,7 @@ node test-tab-sync.mjs   # 43 条断言：双向认领、频道不碰、合成�
 | `test-api.mjs` | `api()` 保留查询串（丢掉就报「缺少 sessionId」） |
 | `test-chat-route.mjs` | 宿主路由 + 上传不被已读完的 request.signal 误取消 + 停止按钮中止上游 + 解析未完成 409 + 会话记住附件（追问仍带 ID、`detachFiles` 断得掉）+ 协议版本一致 |
 | `test-panel.mjs` | 列表归属（页签注册后中间不再有第二份列表、页面不在屏上时提示 + 一键切回）+ 整窗拖放守卫（轨道上的拖放也认领、非文件拖放不受影响、文件夹被拒、监听器可摘）+ 页签按钮解析（按标签找「聊天」而不是按下标猜、「频道」永不映射到任何表面、无行/无 `document` 安静返回 false） |
-| `test-tab-sync.mjs` | 侧栏页签与表面 43 条断言（两个方向都从真实 bundle 提升出来跑）：`reconcileSidebarTab()` 只修「任务/聊天」这一对、行已一致或停在「频道」时一次点击都不发；只有 `isTrusted` 的真点击会被读成用户意图，本插件自己的合成点击不会造成来回拉扯；宿主「新会话」进工作态，但我们自己的「新对话 / New chat」被排除在外（英文界面的 `New chat` 否则会被宿主正则吃掉）；轮询只有一个定时器且可完整拆除；`apply()` 必须先绑 store 再注册页签，否则 `matchSession` 会答错 |
+| `test-tab-sync.mjs` | 侧栏页签与表面 53 条断言（两个方向都从真实 bundle 提升出来跑）：`reconcileSidebarTab()` 只修「任务/聊天」这一对、行已一致或停在「频道」时一次点击都不发；认领会话时先让给别家页签（频道持有 `im:` 会话，我们 `order` 在前，不让就会把用户从频道弹回聊天页），并且对端抛错 / 没注册表 / 没 `matchSession` 都只算「不是声明」而不是崩溃；只有 `isTrusted` 的真点击会被读成用户意图，本插件自己的合成点击不会造成来回拉扯；宿主「新会话」进工作态，但我们自己的「新对话 / New chat」被排除在外（英文界面的 `New chat` 否则会被宿主正则吃掉）；轮询只有一个定时器且可完整拆除；`apply()` 必须先绑 store 再注册页签，否则 `matchSession` 会答错 |
 | `test-surface.mjs` | 聊天/工作表面 51 条断言（`surfaceStore` 从真实 bundle 里提升出来跑）：默认面、可选面导航后重载回到原面、幂等切换、未落地的切换不记入记忆、以真实面板 `panelInfo.activePanelId` 为准对齐（侧栏/外壳把面板拿走也不会让开关「没反应」）、每面各自的位置记忆、位置失效回退新对话、列表未同步时推迟判断 |
 | `test-load.mjs` | 3542 行客户端 bundle 用真实 `window.__ModuleLoader__.load` 握手完整求值一次，再对最小 `ctx` 调一次 `apply()`：`sidebar.panellist` / 键控 `main` / header 开关都注册到位，`shortcuts` 按需注入 |
 | `test-render.mjs` | 真组件真的画一遍 19 条断言（加载中 / 就绪 / 已解析附件 chip / 解析失败 chip / 带 markdown+思维链+引用的完整对话 / 令牌设置卡片 / 两个侧栏座位 / 侧栏页签注册前后的列表归属：一处画列、另一处只剩提示与一键切回），另加静态扫描：厂级作用域的辅助函数调用 `t()` 却没绑定它就必须失败。装载测试只证明文件能求值，画不出来照样是整块白面板 |
