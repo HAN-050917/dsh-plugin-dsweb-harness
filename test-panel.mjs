@@ -55,19 +55,24 @@ assert.match(
   'the drop overlay covers the viewport, not just the panel box',
 );
 
-// The sidebar page is mounted and on screen: it owns the list.
-assert.equal(showSessionColumn({ tabLive: true }), false, 'page on screen => panel column hidden');
-// The page is registered but NOT rendered (rail mode, or its owner unwrapped):
-// the panel must fall back to drawing the column, or nothing shows the list.
-assert.equal(showSessionColumn({ tabLive: false, tabInstalled: true }), true, 'page registered but not rendered => panel column shown');
-// No page at all: same fallback.
-assert.equal(showSessionColumn({ tabLive: false, tabInstalled: false }), true, 'no page => panel column shown');
+// The sidebar page is registered: the leftmost column owns the list, whatever
+// the row currently shows (聊天 page, 任务, or the official tree).
+assert.equal(showSessionColumn({ tabInstalled: true }), false, 'registered page => panel column hidden');
+assert.equal(
+  showSessionColumn({ tabInstalled: true, tabLive: false }),
+  false,
+  'the list stays in the sidebar even while the row shows 任务',
+);
+// No host at all (no @michengai/dsh-im-connect, or its owner unwrapped): the
+// panel is the only place a list could live.
+assert.equal(showSessionColumn({ tabInstalled: false, tabLive: false }), true, 'no page => panel column shown');
 
-// The rule must be driven by the live flag, not the registration flag — this is
-// the exact bug the rail-mode path would otherwise cause.
+// The rule must be driven by the registration flag: the user asked for a single
+// leftmost column in every state, so "the row is on 任务 right now" must NOT
+// bring a second copy of the list back into the middle.
 assert.ok(
-  /function showSessionColumn\(state\)\s*\{\s*return !state\.tabLive;/.test(source),
-  'showSessionColumn must key off tabLive (mount), not tabInstalled (registration)',
+  /function showSessionColumn\(state\)\s*\{\s*return !state\.tabInstalled;/.test(source),
+  'showSessionColumn must key off tabInstalled, not the live mount',
 );
 
 // The column must be routed through the predicate, not test a flag inline.
@@ -75,6 +80,40 @@ assert.ok(
   /showSessionColumn\(state\)\s*\n?\s*\?\s*h\('div',\s*\{ className: 'dswc-side'/.test(source),
   'ChatPanel must render the dswc-side column through showSessionColumn(state)',
 );
+
+// …and when the list is NOT on screen the panel must say where it went, with
+// the one click that brings it back, instead of leaving the user without a list.
+const hint = source.match(/state\.tabInstalled && !state\.tabLive[\s\S]{0,600}/);
+assert.ok(hint, 'ChatPanel must point at the sidebar when its page is not on screen');
+assert.ok(/t\('side\.hint'\)/.test(hint[0]), 'the pointer names where the list lives');
+assert.ok(/activateSidebarTab\('chat'\)/.test(hint[0]), 'and offers to show it');
+
+// The sidebar row has no API for selecting a tab, so the plugin clicks the rows
+// button; the helper must bail out (not throw) when that row is absent.
+const activateSidebarTab = new Function(
+  'i18n',
+  `${lift('activateSidebarTab')}\nreturn activateSidebarTab;`,
+)((key) => ({ 'tab.label': '聊天' })[key] || key);
+const savedDocument = globalThis.document;
+try {
+  delete globalThis.document;
+  assert.equal(activateSidebarTab('chat'), false, 'no document => a silent no-op');
+  globalThis.document = { querySelector: () => null };
+  assert.equal(activateSidebarTab('chat'), false, 'no row => a silent no-op');
+  const clicks = [];
+  const row = {
+    querySelectorAll: () => [
+      { getAttribute: () => 'tab', textContent: '任务', click: () => clicks.push('tasks') },
+      { getAttribute: () => 'tab', textContent: '聊天', click: () => clicks.push('chat') },
+    ],
+  };
+  globalThis.document = { querySelector: () => row };
+  assert.equal(activateSidebarTab('chat'), true, 'chat mode clicks the 聊天 tab');
+  assert.equal(activateSidebarTab('work'), true, 'work mode clicks the first (任务) tab');
+  assert.deepEqual(clicks, ['chat', 'tasks'], JSON.stringify(clicks));
+} finally {
+  globalThis.document = savedDocument;
+}
 
 // The page itself must publish the mount, and clear it on unmount.
 const tab = lift('ChatTab');

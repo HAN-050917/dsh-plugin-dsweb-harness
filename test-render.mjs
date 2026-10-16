@@ -194,7 +194,7 @@ const panelProps = panelChild ? panelChild.props : panelElement.props;
  * of wrapping (the error boundary) must be walked through to reach the panel.
  */
 const drawNode = (node, depth = 0) => {
-  if (node == null || depth > 8) return { error: null };
+  if (node == null || depth > 40) return { error: null };
   if (Array.isArray(node)) {
     for (const child of node) {
       const result = drawNode(child, depth + 1);
@@ -303,6 +303,104 @@ if (typeof boundary.getDerivedStateFromError === 'function') {
   check('the fallback names the failure and offers a retry', /panel\.crashed/.test(joined) && /panel\.reset/.test(joined), joined.slice(0, 120));
   check('the fallback shows the underlying error text', /cannot read properties of undefined/.test(joined), joined.slice(0, 160));
 }
+
+/* ---- state 7: who owns the list ----------------------------------- */
+
+/* Renders the tree the same way `drawNode` does, but keeps the class names and
+   text so the panel's SHAPE can be asserted, not just "it did not throw". */
+const surfaceOf = (out) => {
+  const found = { classes: [], texts: [] };
+  const walk = (node, depth = 0) => {
+    if (node == null || depth > 40) return;
+    if (Array.isArray(node)) {
+      node.forEach((child) => walk(child, depth + 1));
+      return;
+    }
+    if (typeof node === 'string' || typeof node === 'number') {
+      found.texts.push(String(node));
+      return;
+    }
+    if (typeof node !== 'object') return;
+    if (node.props && typeof node.props.className === 'string') found.classes.push(node.props.className);
+    const type = node.type;
+    if (typeof type === 'function') {
+      const props = { ...(node.props || {}), children: node.children };
+      try {
+        const isClass = type.prototype && typeof type.prototype.render === 'function';
+        walk(isClass ? new type(props).render() : type(props), depth + 1);
+      } catch {
+        /* a state that cannot draw is reported by drawNode(), not here */
+      }
+      return;
+    }
+    walk(node.children, depth + 1);
+  };
+  walk(typeof out === 'function' ? out(slotProps) : out);
+  return found;
+};
+
+// Back to a signed-in panel: the ownership question only exists once the chat
+// body (not the token card) is what is being drawn.
+responses['/dsh-deepseek-web-chat/state'] = {
+  protocol: 7,
+  hasToken: true,
+  tokenPreview: 'abcd…wxyz',
+  valid: true,
+  user: { name: 'tester' },
+  modelTypes: [{ id: 'default', label: 'V4' }],
+};
+await panelProps.actions.loadState();
+
+// No sidebar row to host the 聊天 page: the panel is the only place a list can
+// live, so it draws its own column.
+const withoutSidebar = surfaceOf(panelElement);
+check(
+  'with no sidebar row the panel still draws its own list',
+  withoutSidebar.classes.includes('dswc-side'),
+  withoutSidebar.classes.join(' '),
+);
+
+// Hand the plugin a row that accepts the tab. `install()` runs from the effects
+// `apply()` recorded, exactly like the host would run them.
+const insertedTabs = [];
+ctx.slots.entriesOfSlot = () => [
+  {
+    __dshNativeTabs: {
+      getTabs: () => [{ id: 'channels' }],
+      insert: (tab) => {
+        insertedTabs.push(tab);
+        return () => {};
+      },
+      subscribe: () => () => {},
+    },
+  },
+];
+for (const effect of effects) {
+  try {
+    effect();
+  } catch {
+    /* effects that need a richer host are not what this state is about */
+  }
+}
+check('the sidebar row accepted the 聊天 tab', insertedTabs.length === 1, String(insertedTabs.length));
+
+// Registered: the leftmost column owns the list now, so the panel must not draw
+// a second copy — it points at the sidebar instead (the row may be on 任务, or
+// the sidebar may be collapsed).
+const withSidebar = surfaceOf(panelElement);
+check(
+  'a registered sidebar page removes the panel column in every tab state',
+  !withSidebar.classes.includes('dswc-side'),
+  withSidebar.classes.join(' '),
+);
+check(
+  'and the panel says where the list went, with the click that shows it',
+  withSidebar.classes.includes('dswc-side-hint') &&
+    withSidebar.texts.includes('side.hint') &&
+    withSidebar.texts.includes('side.open'),
+  [...withSidebar.classes, ...withSidebar.texts].join(' ').slice(0, 160),
+);
+check('the tab it inserted renders the same sessions', typeof insertedTabs[0].render === 'function' && insertedTabs[0].label === 'tab.label', JSON.stringify(insertedTabs[0] && insertedTabs[0].label));
 
 process.stdout.write(`\nrender smoke: ${failures.length ? `${failures.length} FAILING` : 'all passing'}\n`);
 if (failures.length) {

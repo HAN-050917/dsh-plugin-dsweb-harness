@@ -135,6 +135,7 @@ const makeStore = new Function(
   'PANEL_ID',
   'SURFACE_KEY',
   'LOCATION_KEY',
+  'activateSidebarTab',
   'setTimeout',
   `return ${liftLiteral('const surfaceStore = {')};`,
 );
@@ -164,6 +165,13 @@ const makeHarness = (initial = {}) => {
     },
     opened: [],
     fresh: 0,
+    // The sidebar's tab row is pointed at 任务 / 聊天 on every surface change;
+    // there is no API for it, so the plugin clicks the row's own button.
+    tabs: [],
+    activateSidebarTab: (which) => {
+      harness.tabs.push(which);
+      return true;
+    },
     openSession: (id) => {
       harness.opened.push(id);
       state.activeId = id;
@@ -185,6 +193,7 @@ const makeHarness = (initial = {}) => {
     PANEL_ID,
     SURFACE_KEY,
     LOCATION_KEY,
+    harness.activateSidebarTab,
     () => {},
   );
   built.bind(layout);
@@ -259,6 +268,15 @@ check(
   moved.surface.select('chat') === true && moved.calls.at(-1)[1] === PANEL_ID,
   JSON.stringify(moved.calls),
 );
+// The list moved into the sidebar's tab row, so every surface change has to
+// bring that row along: 聊天 page in chat mode, 任务 in work mode. The row is
+// another plugin's React state and exposes no activate(), so the plugin clicks
+// its button — a stub here records which tab each change asked for.
+check(
+  'every surface change points the sidebar row at the matching tab',
+  moved.tabs.join(',') === 'chat,work,chat',
+  JSON.stringify(moved.tabs),
+);
 
 // The other direction: the layout is on 聊天 while the store still says 工作.
 const ahead = makeHarness({ syncedAt: 1700000000000 });
@@ -268,6 +286,11 @@ check(
   'switching to the surface the layout already shows is a genuine no-op',
   ahead.surface.select('chat') === false && ahead.calls.length === 0,
   JSON.stringify(ahead.calls),
+);
+check(
+  'a no-op switch leaves the sidebar row where the user put it',
+  ahead.tabs.length === 0,
+  JSON.stringify(ahead.tabs),
 );
 check(
   'switching away from it still works',
