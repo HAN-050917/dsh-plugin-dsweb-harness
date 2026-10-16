@@ -306,6 +306,113 @@ check(
   })(),
 );
 
+// ---- the layout service publishes a STORE HANDLE, not a snapshot -------------
+// `ui-layout` exposes `ctx.layout.panelInfo` as `{ getSnapshot, subscribe }`
+// (see `slots.provideRoot({ hooks: { panelInfo: layout.panelInfo } })`), while a
+// slot prop or an older composition carries the plain `{ activePanelId }`.
+// Reading `.activePanelId` straight off the handle returns `undefined`, which
+// reads as "工作" on the chat surface — one bug wearing three masks: the header
+// effect snapped the sidebar back to 任务, and 工作 then no-oped because the
+// store already believed it was on 工作.
+
+const handleOf = (activePanelId) => ({
+  getSnapshot: () => ({ activePanelId }),
+  subscribe: () => () => {},
+});
+
+/**
+ * A layout whose `panelInfo` is the real store handle and whose `selectPanel`
+ * moves it — the shipped shape, where a snapshot is only truthful after the
+ * navigation lands.
+ */
+const makeLiveLayout = (start = null) => {
+  let selection = start;
+  const calls = [];
+  return {
+    calls,
+    selectPanel(panelId) {
+      calls.push(panelId);
+      selection = panelId;
+    },
+    panelInfo: { getSnapshot: () => ({ activePanelId: selection }), subscribe: () => () => {} },
+  };
+};
+
+check(
+  'the panel is read through the store handle the layout service publishes',
+  (() => {
+    const live = makeHarness({ syncedAt: 1700000000000 });
+    live.surface.bind(makeLiveLayout(PANEL_ID));
+    return live.surface.liveSurface() === 'chat';
+  })(),
+);
+check(
+  'the plain snapshot shape still works, for slot props and older compositions',
+  (() => {
+    const live = makeHarness({ syncedAt: 1700000000000 });
+    live.surface.bind({ selectPanel() {}, panelInfo: { activePanelId: PANEL_ID } });
+    return live.surface.liveSurface() === 'chat';
+  })(),
+);
+check(
+  'a null selection through the handle reads as 工作, not as unknown',
+  (() => {
+    const live = makeHarness({ syncedAt: 1700000000000 });
+    live.surface.bind(makeLiveLayout(null));
+    return live.surface.liveSurface() === 'work';
+  })(),
+);
+check(
+  'a handle whose snapshot throws is no evidence, never a wrong surface',
+  (() => {
+    const live = makeHarness({ syncedAt: 1700000000000 });
+    live.surface.bind({
+      selectPanel() {},
+      panelInfo: { getSnapshot: () => { throw new Error('store is torn down'); }, subscribe: () => () => {} },
+    });
+    return live.surface.liveSurface() === undefined;
+  })(),
+);
+
+// The end-to-end shape of the report (m04642): enter 聊天, then try to leave.
+// Pre-fix, `liveSurface()` read `undefined` off the handle → "工作", so the
+// header effect snapped the sidebar back to 任务 and the second click was
+// swallowed by the guard: "点一下聊天就闪一下又变成任务", "无法切换回工作".
+{
+  const reported = makeHarness({ syncedAt: 1700000000000 });
+  reported.surface.bind(makeLiveLayout(null));
+  reported.surface.load();
+
+  check(
+    'entering 聊天 lands on the chat surface',
+    reported.surface.select('chat') === true && reported.surface.current === 'chat',
+    reported.surface.current,
+  );
+  check(
+    'the sidebar row is pointed at 聊天, not dragged back to 任务',
+    reported.tabs.join(',') === 'chat',
+    JSON.stringify(reported.tabs),
+  );
+  check(
+    'the surface survives the header switch re-reading the live panel',
+    (() => {
+      reported.surface.syncSurface();
+      return reported.surface.current === 'chat' && reported.tabs.join(',') === 'chat';
+    })(),
+    JSON.stringify(reported.tabs),
+  );
+  check(
+    'and 工作 still responds from there',
+    reported.surface.select('work') === true && reported.surface.current === 'work',
+    JSON.stringify(reported.calls),
+  );
+  check(
+    'leaving 聊天 points the sidebar row back at 任务',
+    reported.tabs.join(',') === 'chat,work',
+    JSON.stringify(reported.tabs),
+  );
+}
+
 // ---- per-surface location memory --------------------------------------------
 
 memory.clear();

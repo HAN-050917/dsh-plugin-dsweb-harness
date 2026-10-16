@@ -151,7 +151,7 @@ dsh-deepseek-web-chat/
 ├── test-style.mjs        # 样式表只用真实主题 token，且类名都有定义
 ├── test-panel.mjs        # 「同一时刻只有一处画会话列表」的归属规则
 ├── test-tab-sync.mjs     # 侧栏页签 ⇄ 聊天/工作表面永不漂移（53 条断言）
-├── test-surface.mjs      # 聊天/工作表面：持久化、幂等、以真实面板为准的对齐、每面各自的位置记忆、表面切换同时带动侧栏页签（51 条断言）
+├── test-surface.mjs      # 聊天/工作表面：持久化、幂等、以真实面板为准的对齐、每面各自的位置记忆、表面切换同时带动侧栏页签（60 条断言）
 ├── test-load.mjs         # 整个客户端 bundle 完整装载一次 + 对最小 ctx 调 apply（12 条断言）
 ├── test-render.mjs       # 真组件真的画一遍：加载/就绪/附件 chip 各状态、列表归属（页签注册前后各画一次）+ 厂级作用域里误用 t() 的静态扫描
 └── test-chat-route.mjs   # Host 路由级：客户端断开必须 abort 上游、新回合顶掉旧回合、协议版本一致
@@ -184,6 +184,10 @@ dsh-deepseek-web-chat/
 | `main`（keyed，`key: 'deepseek-web-chat'`） | 聊天面板本体 |
 | `conversation.header.leading`（single，原本空着） | 标题前的 **聊天 / 工作** 开关，没开会话时也在 |
 
+聊天模式下 conversation 表面被本插件的 `main` 面板取代，这个座位不再渲染，所以聊天面板**自己**
+也画一枚同样的开关——位置必须与工作模式一致（贴在头部最左，排在 `.dswc-spacer` **之前**），
+否则一进聊天模式开关就跑到右边缘。
+
 （另有 `ctx.inject(['shortcuts'], …)` 注册的两个切换命令，见下。）
 
 模式切换用的是 DSH 自己的原语：`ctx.layout.selectPanel('deepseek-web-chat')` 进聊天，
@@ -211,6 +215,12 @@ DOM 技巧，也不会盖掉自带界面。
   （`pendingChatRestore`），而不是靠猜。
 - **面板 key 还没注册时 `selectPanel` 会抛**。它是从一个 `onClick` 里调的，所以这里吞掉异常
   当作 no-op：「界面还没准备好」而不是让点击炸掉。选择已经先写进 localStorage，下次启动会重试。
+- **`layout.panelInfo` 是 store handle，不是快照。** 它的真实形状是 `{ getSnapshot, subscribe }`
+  （`ui-layout` 用它 `slots.provideRoot({ hooks: { panelInfo: … } })`），在 handle 上读
+  `.activePanelId` 永远是 `undefined`，而 `undefined` 被读成「工作」——于是点「聊天」时
+  header 效应把侧栏页签拽回「任务」（看着像「闪一下又变回任务」），再点「工作」又被幂等守卫
+  当成「已经在工作了」而整个丢掉（看着像「没反应」）。`liveSurface()` 因此先 `getSnapshot()`，
+  两种形状都支持；快照抛错或不是对象时返回 `undefined`（未知），绝不谎报一个面。
 
 快捷键与开关是同一段代码：`Alt+1` = 聊天，`Alt+2` = 工作（macOS 用平台惯例的 `Ctrl+1/2`），
 注册成两个命令（`deepseek-web-chat.switchToChat` / `switchToWork`），对应桌面端的
@@ -488,14 +498,28 @@ node test-markdown.mjs   # 分词的类别、逐字符保真、注释优先于�
 幂等守卫 `isSameSurface()` 会以为「已经在那儿了」，于是**切换被静默丢掉**——这正是「点历史对话、
 点顶部切换按钮有时候没反应」。
 
-现在 `select()` 先做一次 `syncSurface()`：读真实状态 `layout.panelInfo.activePanelId`
-（`null`/别的 id 就是工作态），用事实覆盖记忆，再走「幂等 → 导航 → 记录」。附带两点：
+现在 `select()` 先做一次 `syncSurface()`：读真实状态，用事实覆盖记忆，再走「幂等 → 导航 → 记录」。
+附带两点：
 
 - 导航**成功之后**才写记忆：`selectPanel` 在键还没注册时抛错，那次失败不再被记成「已在聊天」；
 - header 开关在 `activePanelId` 变化时同步一次记忆，所以外壳换的面板也会被记住，刷新后回到原处。
 
+**读真实状态要经过 store handle，不能直接取属性。** `ctx.layout.panelInfo` 的真实形状是
+`{ getSnapshot, subscribe }`：`ui-layout` 在 `slots.provideRoot({ hooks: { panelInfo: … } })` 里
+给的就是这个 handle（内部为 `getSnapshot: () => instance.getSnapshot().panelInfo`），只有 slot prop
+或旧组合才给普通快照 `{ activePanelId }`。所以在 handle 上读 `.activePanelId` 永远得到 `undefined`，
+而 `undefined` 会被读成「工作」——**一次读错同时造成两个症状**：
+
+- 点「聊天」：面板开了，但 header 效应把 `current` 拽回 工作、`matchSession` 也据此答「不认领」，
+  对侧跟随规则把侧栏页签换成「任务」→「闪一下就又变成任务」；
+- 再点「工作」：幂等守卫以为「已经在工作了」，直接 `return false`，一次导航都不发 →「点了没反应」。
+
+`liveSurface()` 因此先 `getSnapshot()` 再读 `activePanelId`，并对抛错/非对象一律返回 `undefined`
+（未知），而不是谎报一个面。两种形状都有断言钉住。
+
 ```powershell
-node test-surface.mjs   # 51 条断言：含「面板被外壳拿走 → 记忆自动纠正 → 下一次切换不再被吞」
+node test-surface.mjs   # 60 条断言：含「面板被外壳拿走 → 记忆自动纠正 → 下一次切换不再被吞」、
+                        # 以及 store handle 形状（bug：在 handle 上读 activePanelId 永远命中 undefined）
 ```
 
 ### 侧栏页签与表面互相认领，而不是各走各的
@@ -581,7 +605,7 @@ node test-tab-sync.mjs   # 53 条断言：双向认领、不抢频道、合成�
 | `test-chat-route.mjs` | 宿主路由 + 上传不被已读完的 request.signal 误取消 + 停止按钮中止上游 + 解析未完成 409 + 会话记住附件（追问仍带 ID、`detachFiles` 断得掉）+ 协议版本一致 |
 | `test-panel.mjs` | 列表归属（页签注册后中间不再有第二份列表、页面不在屏上时提示 + 一键切回）+ 整窗拖放守卫（轨道上的拖放也认领、非文件拖放不受影响、文件夹被拒、监听器可摘）+ 页签按钮解析（按标签找「聊天」而不是按下标猜、「频道」永不映射到任何表面、无行/无 `document` 安静返回 false） |
 | `test-tab-sync.mjs` | 侧栏页签与表面 53 条断言（两个方向都从真实 bundle 提升出来跑）：`reconcileSidebarTab()` 只修「任务/聊天」这一对、行已一致或停在「频道」时一次点击都不发；认领会话时先让给别家页签（频道持有 `im:` 会话，我们 `order` 在前，不让就会把用户从频道弹回聊天页），并且对端抛错 / 没注册表 / 没 `matchSession` 都只算「不是声明」而不是崩溃；只有 `isTrusted` 的真点击会被读成用户意图，本插件自己的合成点击不会造成来回拉扯；宿主「新会话」进工作态，但我们自己的「新对话 / New chat」被排除在外（英文界面的 `New chat` 否则会被宿主正则吃掉）；轮询只有一个定时器且可完整拆除；`apply()` 必须先绑 store 再注册页签，否则 `matchSession` 会答错 |
-| `test-surface.mjs` | 聊天/工作表面 51 条断言（`surfaceStore` 从真实 bundle 里提升出来跑）：默认面、可选面导航后重载回到原面、幂等切换、未落地的切换不记入记忆、以真实面板 `panelInfo.activePanelId` 为准对齐（侧栏/外壳把面板拿走也不会让开关「没反应」）、每面各自的位置记忆、位置失效回退新对话、列表未同步时推迟判断 |
+| `test-surface.mjs` | 聊天/工作表面 60 条断言（`surfaceStore` 从真实 bundle 里提升出来跑）：默认面、可选面导航后重载回到原面、幂等切换、未落地的切换不记入记忆、以真实面板为准对齐（`panelInfo` 的 **store handle 与普通快照两种形状都支持**；侧栏/外壳把面板拿走也不会让开关「没反应」）、每面各自的位置记忆、位置失效回退新对话、列表未同步时推迟判断 |
 | `test-load.mjs` | 3542 行客户端 bundle 用真实 `window.__ModuleLoader__.load` 握手完整求值一次，再对最小 `ctx` 调一次 `apply()`：`sidebar.panellist` / 键控 `main` / header 开关都注册到位，`shortcuts` 按需注入 |
 | `test-render.mjs` | 真组件真的画一遍 19 条断言（加载中 / 就绪 / 已解析附件 chip / 解析失败 chip / 带 markdown+思维链+引用的完整对话 / 令牌设置卡片 / 两个侧栏座位 / 侧栏页签注册前后的列表归属：一处画列、另一处只剩提示与一键切回），另加静态扫描：厂级作用域的辅助函数调用 `t()` 却没绑定它就必须失败。装载测试只证明文件能求值，画不出来照样是整块白面板 |
 

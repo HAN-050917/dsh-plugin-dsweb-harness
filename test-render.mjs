@@ -402,6 +402,24 @@ check(
 );
 check('the tab it inserted renders the same sessions', typeof insertedTabs[0].render === 'function' && insertedTabs[0].label === 'tab.label', JSON.stringify(insertedTabs[0] && insertedTabs[0].label));
 
+/* ---- the 聊天/工作 switch keeps the seat it has in 工作 mode -------- */
+
+/* In 工作 mode DSH renders the switch in `conversation.header.leading`, i.e.
+   hard against the LEFT edge of the title row. Parking the panel's own copy
+   after `.dswc-spacer` made it jump to the right edge the moment the user
+   entered 聊天 — the reported "切换按钮跑到右边去". The head is drawn before the
+   body and before the composer, so the FIRST spacer in walk order is the head's:
+   the switch has to come before it. */
+const headClasses = withSidebar.classes;
+const switchAt = headClasses.findIndex((name) => name.includes('dswc-mode-switch'));
+const spacerAt = headClasses.indexOf('dswc-spacer');
+check('the panel draws the mode switch', switchAt !== -1, headClasses.join(' '));
+check(
+  'the mode switch is drawn before the spacer, i.e. anchored left',
+  switchAt !== -1 && spacerAt !== -1 && switchAt < spacerAt,
+  `switchAt=${switchAt} spacerAt=${spacerAt}`,
+);
+
 process.stdout.write(`\nrender smoke: ${failures.length ? `${failures.length} FAILING` : 'all passing'}\n`);
 if (failures.length) {
   for (const line of failures) process.stdout.write(`  - ${line}\n`);
