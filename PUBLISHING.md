@@ -20,11 +20,11 @@ npm pack --dry-run                                         # 该发的文件：l
 ## 1. 推到 GitHub
 
 仓库地址已按 `<你的用户名>/dsh-deepseek-web-chat` 写在 `package.json` 里
-（`repository` / `homepage` / `bugs`）；如果用户名不是 `ardeyouxipianyi`，先全局替换。
+（`repository` / `homepage` / `bugs`）；如果用户名不是 `HAN-050917`，先全局替换。
 
 ```bash
 # 在 GitHub 上先建好空仓库（不要勾选 README），然后：
-git remote add origin https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat.git
+git remote add origin https://github.com/HAN-050917/dsh-plugin-dsweb-harness.git
 git push -u origin main
 ```
 
@@ -54,9 +54,9 @@ npm publish --access public
 Fork → 新建下面这个文件 → 提 PR（一次 PR 最多 3 个条目）：
 
 ```yaml
-# data/plugins/ardeyouxipianyi__dsh-deepseek-web-chat.yml
-url: https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat
-name: ardeyouxipianyi/dsh-deepseek-web-chat
+# data/plugins/HAN-050917__dsh-plugin-dsweb-harness.yml
+url: https://github.com/HAN-050917/dsh-plugin-dsweb-harness
+name: HAN-050917/dsh-plugin-dsweb-harness
 category: ui
 description:
   en: Sync and continue your chat.deepseek.com conversations inside DSH, with a ChatGPT-style chat/work switch.
@@ -77,7 +77,7 @@ dsh plugin --profile web add dshmarket      # 需要 dsh web ≥ 0.1.0-rc.6
 
 # ② 命令行
 dsh plugin --profile desktop add dsh-deepseek-web-chat
-dsh plugin --profile desktop add github:ardeyouxipianyi/dsh-deepseek-web-chat
+dsh plugin --profile desktop add github:HAN-050917/dsh-plugin-dsweb-harness
 ```
 
 装完**重启 DSH**：宿主半边是 ESM，只有新进程才会加载新的 JS 代际。

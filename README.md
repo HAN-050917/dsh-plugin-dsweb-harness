@@ -43,7 +43,7 @@ dsh plugin --profile web add dshmarket   # 需要 dsh web 0.1.0-rc.6 及以上
 ```bash
 dsh plugin --profile desktop add dsh-deepseek-web-chat
 # 或未发布时直接指向仓库 / 本目录：
-dsh plugin --profile desktop add github:ardeyouxipianyi/dsh-deepseek-web-chat
+dsh plugin --profile desktop add github:HAN-050917/dsh-plugin-dsweb-harness
 dsh plugin --profile desktop add C:/Users/p/Documents/deepseek-harness/default-workspace/dsh-deepseek-web-chat
 ```
 

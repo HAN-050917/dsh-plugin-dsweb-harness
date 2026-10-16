@@ -1,9 +1,9 @@
 # 复制到 awesome-dsh-plugin 的 fork：
-#   data/plugins/ardeyouxipianyi__dsh-deepseek-web-chat.yml
+#   data/plugins/HAN-050917__dsh-plugin-dsweb-harness.yml
 # 然后向 https://github.com/awesome-dsh-plugin/awesome-dsh-plugin 提 PR。
 # 一个 PR 最多 3 个条目；CI 会检查 dsh.bundle 存在、仓库满 1 天、以及 awesome-lint。
-url: https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat
-name: ardeyouxipianyi/dsh-deepseek-web-chat
+url: https://github.com/HAN-050917/dsh-plugin-dsweb-harness
+name: HAN-050917/dsh-plugin-dsweb-harness
 category: ui
 description:
   en: Sync and continue your chat.deepseek.com conversations inside DSH, with a ChatGPT-style chat/work switch.

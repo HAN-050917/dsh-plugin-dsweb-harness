@@ -31,11 +31,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat.git"
+    "url": "git+https://github.com/HAN-050917/dsh-plugin-dsweb-harness.git"
   },
-  "homepage": "https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat#readme",
+  "homepage": "https://github.com/HAN-050917/dsh-plugin-dsweb-harness#readme",
   "bugs": {
-    "url": "https://github.com/ardeyouxipianyi/dsh-deepseek-web-chat/issues"
+    "url": "https://github.com/HAN-050917/dsh-plugin-dsweb-harness/issues"
   },
   "publishConfig": {
     "access": "public"
