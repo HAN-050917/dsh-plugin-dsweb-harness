@@ -68,6 +68,27 @@ description:
 CI 顺序：每个 PR ≤3 条 → `dsh.bundle` 存在 → 仓库创建满 1 天 → awesome-lint 与站点构建。
 合并后站点和市场通常在一天内自动出现该插件。
 
+### 预检：直接跑市场自己的校验器
+
+不用等 CI，可以把对方的 `check-submission.mjs` 拉下来本地跑一遍，它会逐条报出还差什么
+（`--dir` 指向一个只放我们这一条 entry 的临时目录，就不会去校验别人的条目）：
+
+```bash
+mkdir -p /tmp/prdata/data/plugins
+cp contrib/awesome-dsh-plugin.yml /tmp/prdata/data/plugins/HAN-050917__dsh-plugin-dsweb-harness.yml
+curl -fsS https://raw.githubusercontent.com/awesome-dsh-plugin/awesome-dsh-plugin/main/scripts/check-submission.mjs -o /tmp/check-submission.mjs
+# 它 import './lib/entries.mjs'，并且要 GITHUB_TOKEN（列 git tree 用）
+GITHUB_TOKEN=$(git credential fill <<< $'protocol=https\nhost=github.com\n\n' | sed -n 's/^password=//p') \
+  node /tmp/check-submission.mjs --dir /tmp/prdata/data/plugins --json /tmp/gate.json
+```
+
+2026-10-16 实跑结果：`checked: 1`，唯一一条 `problems` 是
+`repository is 0.4 days old (needs 1) — nothing to do: this check re-runs by itself and should clear in about 16h`。
+也就是说 `dsh.bundle`、仓库存在且未归档、非 DSH 本体、条目数、YAML 可解析全部已过，
+**只差仓库年龄这一项**——而这一项时间到了会自己变绿：仓库 `created_at=2026-10-16T01:09:59Z`，
+**2026-10-17T01:09:59Z 之后**再提 PR 即可。`regate.yml` 每 6 小时重跑一次年龄门禁，
+所以即使提前提了，也不要关掉重开或空推 commit——放着它自己会翻绿。
+
 ## 4. 用户可以怎么装
 
 ```bash
@@ -101,9 +122,20 @@ npm publish --access public
 { "screenshots": ["docs/shot-1.png", "docs/shot-2.png"] }
 ```
 
-规则：**1–8 张**，相对路径；绝对 URL 只能是 GitHub 域名下的 https
+规则（已对着 `contributing.md` 原文核对）：**1–8 张**；路径**相对于该文件本身**，指向你自己仓库里
+已有的图片，不能以 `/` 开头、不能含 `..`；也接受绝对 URL，但必须是 **GitHub 托管的 https**
 （`raw.githubusercontent.com`、`user-images.githubusercontent.com`、`camo.githubusercontent.com`、
-`github.com` 附件），第三方图床会被拒。放进本仓库 `docs/` 再提交即可。
+`github.com` 附件），第三方图床会被拒。纯数组（`["docs/a.png"]`）与带字段名两种写法都行，
+本仓库用的是纯数组。不声明也没关系——市场会退回从 README 里抽图，声明只是为了控制顺序与选图。
+
+截图放进本仓库 `docs/` 再提交即可。推送后可以用 raw 链接自查一遍是否真的可达：
+
+```bash
+curl -fsSI https://raw.githubusercontent.com/HAN-050917/dsh-plugin-dsweb-harness/HEAD/docs/chat-mode.png
+```
+
+（2026-10-16 实测两张都是 `200 image/png`，字节数与本地完全一致：`chat-mode.png` 178,538 B、
+`code-highlight.png` 154,354 B。）
 
 ## 7. 安全检查（发布前）
 
