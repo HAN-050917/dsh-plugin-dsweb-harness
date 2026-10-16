@@ -24,9 +24,11 @@
   "files": [
     "lib",
     "locale",
+    "docs",
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
+    "screenshots.json",
     "LICENSE"
   ],
   "repository": {
